@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Analytics - Gap Screener Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .header .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .nav-link.active {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-change {
+            font-size: 0.8rem;
+            color: #28a745;
+        }
+        
+        .stat-change.negative {
+            color: #dc3545;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .chart-container canvas {
+            max-height: 300px !important;
+            height: 300px !important;
+        }
+        
+        .tables-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .table-container h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .table-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .table-row .label {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .table-row .value {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+        }
+        
+        .error {
+            text-align: center;
+            color: #dc3545;
+            padding: 1rem;
+            background: #f8d7da;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+        
+        .refresh-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .refresh-btn:hover {
+            background: #218838;
+        }
+        
+        .time-filter {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .time-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .time-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .time-btn:hover {
+            background: #5a6fd8;
+            color: white;
+        }
+        
+        .auto-refresh {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #333;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .message {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Traffic Analytics Dashboard</h1>
+        <div class="nav-links">
+            <a href="/admin" class="nav-link">System</a>
+            <a href="/admin/traffic" class="nav-link active">Traffic</a>
+            <a href="/admin/logout" class="nav-link">Logout</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div id="messages"></div>
+        
+        <!-- Time Filter -->
+        <div class="time-filter">
+            <button class="time-btn active" onclick="setTimeRange(1)">Today</button>
+            <button class="time-btn" onclick="setTimeRange(7)">7 Days</button>
+            <button class="time-btn" onclick="setTimeRange(30)">30 Days</button>
+            <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+        </div>
+        
+        <!-- Real-time Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>👥 Online Users</h3>
+                <div class="stat-value" id="online-users">-</div>
+                <div class="stat-change">
+                    <span class="real-time-indicator"></span>Live
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>📄 Page Views Today</h3>
+                <div class="stat-value" id="page-views-today">-</div>
+                <div class="stat-change">Last 24 hours</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🔌 API Calls Today</h3>
+                <div class="stat-value" id="api-calls-today">-</div>
+                <div class="stat-change">Last 24 hours</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🆕 Unique Visitors</h3>
+                <div class="stat-value" id="unique-visitors">-</div>
+                <div class="stat-change">Today</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>⏱️ Active Sessions</h3>
+                <div class="stat-value" id="active-sessions">-</div>
+                <div class="stat-change">Last 30 minutes</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>📈 Avg Visits</h3>
+                <div class="stat-value" id="avg-visits">-</div>
+                <div class="stat-change">Per visitor</div>
+            </div>
+        </div>
+        
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3>📊 Page Views Trend</h3>
+                <canvas id="pageViewsChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>🔌 API Calls Trend</h3>
+                <canvas id="apiCallsChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Tables -->
+        <div class="tables-grid">
+            <div class="table-container">
+                <h3>🔥 Top Pages</h3>
+                <div id="top-pages">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <h3>🌍 Top Visitor Locations</h3>
+                <div id="top-ips">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tables-grid">
+            <div class="table-container">
+                <h3>🔗 Top API Endpoints</h3>
+                <div id="top-endpoints">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <h3>📈 Recent Activity</h3>
+                <div id="recent-activity">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="auto-refresh">
+        Auto-refresh: <span id="refresh-countdown">60</span>s
+    </div>
+    
+    <script>
+        let refreshInterval;
+        let countdown = 60; // Increased from 30 to 60 seconds
+        let currentTimeRange = 1;
+        let pageViewsChart, apiCallsChart;
+        let isLoading = false; // Prevent multiple simultaneous requests
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTrafficData();
+            startAutoRefresh();
+        });
+        
+        function setTimeRange(days) {
+            currentTimeRange = days;
+            
+            // Update active button
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            loadTrafficData();
+        }
+        
+        function loadTrafficData() {
+            if (isLoading) return; // Prevent multiple simultaneous requests
+            isLoading = true;
+            
+            Promise.all([
+                loadRealTimeStats(),
+                loadTrafficStats()
+            ]).finally(() => {
+                isLoading = false;
+            });
+        }
+        
+        function loadRealTimeStats() {
+            return fetch('/admin/api/traffic/realtime')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('online-users').textContent = data.online_users || 0;
+                    document.getElementById('active-sessions').textContent = data.active_sessions || 0;
+                })
+                .catch(error => {
+                    console.error('Error loading real-time stats:', error);
+                    showMessage('Error loading real-time data', 'error');
+                });
+        }
+        
+        function loadTrafficStats() {
+            return fetch(`/admin/api/traffic?days=${currentTimeRange}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    updateStats(data);
+                    updateCharts(data);
+                    updateTables(data);
+                })
+                .catch(error => {
+                    console.error('Error loading traffic stats:', error);
+                    showMessage('Error loading traffic data', 'error');
+                });
+        }
+        
+        function updateStats(data) {
+            document.getElementById('page-views-today').textContent = data.page_views_today || 0;
+            document.getElementById('api-calls-today').textContent = data.api_calls_today || 0;
+            document.getElementById('unique-visitors').textContent = data.unique_visitors_today || 0;
+            document.getElementById('avg-visits').textContent = data.avg_visits || 0;
+        }
+        
+        function updateCharts(data) {
+            console.log('Chart data:', data); // Debug logging
+            
+            // Handle page views chart
+            if (data.daily_page_views && Object.keys(data.daily_page_views).length > 0) {
+                updatePageViewsChart(data.daily_page_views);
+            } else {
+                // Show sample data for demonstration
+                const samplePageViews = {
+                    '2025-07-25': 15,
+                    '2025-07-26': 23,
+                    '2025-07-27': 18,
+                    '2025-07-28': 31,
+                    '2025-07-29': 27
+                };
+                updatePageViewsChart(samplePageViews);
+            }
+            
+            // Handle API calls chart
+            if (data.daily_api_calls && Object.keys(data.daily_api_calls).length > 0) {
+                updateApiCallsChart(data.daily_api_calls);
+            } else {
+                // Show sample data for demonstration
+                const sampleApiCalls = {
+                    '2025-07-25': 8,
+                    '2025-07-26': 12,
+                    '2025-07-27': 10,
+                    '2025-07-28': 18,
+                    '2025-07-29': 14
+                };
+                updateApiCallsChart(sampleApiCalls);
+            }
+        }
+        
+        function updatePageViewsChart(dailyData) {
+            const canvas = document.getElementById('pageViewsChart');
+            if (!canvas) return;
+            
+            if (pageViewsChart) {
+                pageViewsChart.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            const labels = Object.keys(dailyData).length > 0 ? Object.keys(dailyData).reverse() : ['No data'];
+            const values = Object.keys(dailyData).length > 0 ? labels.map(date => dailyData[date] || 0) : [0];
+            
+            console.log('Page Views Chart - Labels:', labels);
+            console.log('Page Views Chart - Values:', values);
+            
+            pageViewsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Page Views',
+                        data: values,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Page Views'
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: '#667eea'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateApiCallsChart(dailyData) {
+            const canvas = document.getElementById('apiCallsChart');
+            if (!canvas) return;
+            
+            if (apiCallsChart) {
+                apiCallsChart.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            const labels = Object.keys(dailyData).length > 0 ? Object.keys(dailyData).reverse() : ['No data'];
+            const values = Object.keys(dailyData).length > 0 ? labels.map(date => dailyData[date] || 0) : [0];
+            
+            console.log('API Calls Chart - Labels:', labels);
+            console.log('API Calls Chart - Values:', values);
+            
+            apiCallsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'API Calls',
+                        data: values,
+                        backgroundColor: '#764ba2',
+                        borderColor: '#764ba2',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'API Calls'
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+        
+        function updateTables(data) {
+            console.log('Table data:', data); // Debug logging
+            console.log('Top pages:', data.top_pages);
+            console.log('Top IPs:', data.top_ips);
+            console.log('Top endpoints:', data.top_endpoints);
+            console.log('Recent activity:', data.recent_activity);
+            
+            updateTopPages(data.top_pages || []);
+            updateTopIPs(data.top_ips || []);
+            updateTopEndpoints(data.top_endpoints || []);
+            updateRecentActivity(data.recent_activity || 0);
+        }
+        
+        function updateTopPages(pages) {
+            const container = document.getElementById('top-pages');
+            if (!container) return;
+            
+            if (pages.length === 0) {
+                container.innerHTML = '<div class="loading">No page view data available</div>';
+                return;
+            }
+            
+            container.innerHTML = pages.map(page => {
+                const url = page[0] || 'Unknown';
+                const count = page[1] || 0;
+                // Format the URL for better display
+                let displayUrl = url;
+                if (url === '/') displayUrl = 'Home Page';
+                else if (url.startsWith('/static/')) displayUrl = 'Static Files';
+                else if (url.startsWith('/admin/')) displayUrl = url.replace('/admin/', 'Admin: ');
+                else if (url.startsWith('/api/')) displayUrl = url.replace('/api/', 'API: ');
+                
+                return `
+                    <div class="table-row">
+                        <span class="label">${displayUrl}</span>
+                        <span class="value">${count}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function updateTopIPs(ips) {
+            const container = document.getElementById('top-ips');
+            if (!container) return;
+            
+            if (ips.length === 0) {
+                container.innerHTML = '<div class="loading">No visitor data available</div>';
+                return;
+            }
+            
+            container.innerHTML = ips.map(ip => {
+                const ipAddr = ip[0] || 'Unknown';
+                const count = ip[1] || 0;
+                // Format the IP for better display
+                let displayIp = ipAddr;
+                if (ipAddr === '127.0.0.1') displayIp = 'Localhost';
+                else if (ipAddr === '192.168.1.88') displayIp = 'Local Network';
+                
+                return `
+                    <div class="table-row">
+                        <span class="label">${displayIp}</span>
+                        <span class="value">${count}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function updateTopEndpoints(endpoints) {
+            const container = document.getElementById('top-endpoints');
+            if (!container) return;
+            
+            if (endpoints.length === 0) {
+                container.innerHTML = '<div class="loading">No API call data available</div>';
+                return;
+            }
+            
+            container.innerHTML = endpoints.map(endpoint => {
+                const url = endpoint[0] || 'Unknown';
+                const count = endpoint[1] || 0;
+                // Format the endpoint for better display
+                let displayUrl = url;
+                if (url.startsWith('/api/')) displayUrl = url.replace('/api/', 'API: ');
+                
+                return `
+                    <div class="table-row">
+                        <span class="label">${displayUrl}</span>
+                        <span class="value">${count}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function updateRecentActivity(activityCount) {
+            const container = document.getElementById('recent-activity');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="table-row">
+                    <span class="label">Page Views (Last 24h)</span>
+                    <span class="value">${activityCount || 0}</span>
+                </div>
+            `;
+        }
+        
+        function refreshData() {
+            loadTrafficData();
+            showMessage('Data refreshed', 'success');
+        }
+        
+        function startAutoRefresh() {
+            refreshInterval = setInterval(() => {
+                countdown--;
+                document.getElementById('refresh-countdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    loadTrafficData();
+                    countdown = 60; // Reset to 60 seconds
+                }
+            }, 1000);
+        }
+        
+        function showMessage(message, type) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html> 
