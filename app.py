@@ -24,6 +24,38 @@ background_scanner_process = None
 SCANNER_PID_FILE = "background_scanner.pid"
 TRAFFIC_DB = "traffic_analytics.db"
 
+# Initialize background scanner for production (Gunicorn) - Non-blocking
+def initialize_background_scanner():
+    """Initialize background scanner - called when app starts"""
+    try:
+        print("🔄 Initializing background scanner for production...")
+        # Use threading to avoid blocking app startup
+        import threading
+        def start_scanner_thread():
+            try:
+                scanner_started = start_background_scanner()
+                if scanner_started:
+                    print("✅ Background scanner is running")
+                else:
+                    print("⚠️  Background scanner failed to start - will retry on first request")
+            except Exception as e:
+                print(f"❌ Error in scanner thread: {e}")
+        
+        # Start scanner in background thread
+        scanner_thread = threading.Thread(target=start_scanner_thread, daemon=True)
+        scanner_thread.start()
+        print("🔄 Background scanner thread started")
+            
+    except Exception as e:
+        print(f"❌ Error initializing background scanner: {e}")
+
+# Start background scanner when app is created (non-blocking)
+try:
+    initialize_background_scanner()
+except Exception as e:
+    print(f"❌ Failed to initialize background scanner: {e}")
+    print("🔄 Will start scanner on first request instead")
+
 # =====================================================
 # TRAFFIC ANALYTICS
 # =====================================================
@@ -398,9 +430,9 @@ def start_background_scanner():
         
         print("🚀 Starting background scanner...")
         
-        # Start the background scanner process
+        # Start the FAST background scanner process
         background_scanner_process = subprocess.Popen(
-            [sys.executable, 'background_scanner.py'],
+            [sys.executable, 'background_scanner_fast.py'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -1209,21 +1241,19 @@ def analytics_test():
 
 @app.route("/health")
 def health():
-    """Health check endpoint"""
-    cache_status = get_cache_status()
-    managed_running = (background_scanner_process and background_scanner_process.poll() is None)
-    pid_file_running = is_scanner_running()
-    scanner_status = "running" if (managed_running or pid_file_running) else "stopped"
-    
-    return jsonify({
-        'status': 'healthy',
-        'cache_status': cache_status['status'],
-        'cache_age_minutes': cache_status['age_minutes'],
-        'scanner_status': scanner_status,
-        'scanner_managed': managed_running,
-        'scanner_pid_detected': pid_file_running,
-        'timestamp': datetime.now().isoformat()
-    })
+    """Health check endpoint - simplified for production"""
+    try:
+        return jsonify({
+            'status': 'healthy',
+            'app': 'Poppalyze',
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 @app.route("/api/scanner/start", methods=['POST'])
 def start_scanner():
