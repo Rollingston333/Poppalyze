@@ -557,13 +557,13 @@
                 <span>Data: {% if cache_status %}{{ cache_status.message }}{% else %}Unknown{% endif %}</span>
             </div>
             <div class="status-item">
-                <span>📊 {{ total_stocks }} total stocks</span>
+                <span>📊 {{ total_stocks }} Total Stocks</span>
             </div>
             <div class="status-item">
-                <span>🔍 {{ filtered_count }} filtered results</span>
+                <span>🔍 {{ filtered_count }} Filtered Results</span>
             </div>
             <div class="status-item">
-                <span>🕒 Last update: {% if last_update %}{{ last_update }}{% else %}Never{% endif %}</span>
+                <span>🕒 Last Update: {% if last_update %}{{ last_update }}{% else %}Never{% endif %}</span>
             </div>
         </div>
 
@@ -616,7 +616,7 @@
                 </div>
                 <div class="card-footer">
                     {% if quick_movers %}
-                        Showing top {{ quick_movers|length }} quick movers • Updated: {% if last_update %}{{ last_update }}{% else %}Never{% endif %} • Auto-refreshes every 3 minutes
+                        Showing top {{ quick_movers|length }} Quick Movers • Updated: {% if last_update %}{{ last_update }}{% else %}Never{% endif %} • Auto-refreshes every 3 minutes
                     {% else %}
                         No results • Updated: {% if last_update %}{{ last_update }}{% else %}Never{% endif %} • Auto-refreshes every 3 minutes
                     {% endif %}

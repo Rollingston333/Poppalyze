@@ -1184,12 +1184,22 @@ def api_cache_status():
     cache = cache_manager.load_cache()
     cache_status = get_cache_status()
     
+    # Handle case where cache is None
+    if cache is None:
+        return jsonify({
+            'cache_status': cache_status,
+            'successful_count': 0,
+            'total_count': 0,
+            'last_update': 'Never',
+            'stocks_available': 0
+        })
+    
     return jsonify({
         'cache_status': cache_status,
         'successful_count': cache.get('successful_count', 0),
         'total_count': cache.get('total_count', 0),
         'last_update': cache.get('last_update_str', 'Never'),
-        'stocks_available': len(cache.get('stocks', {}))
+        'stocks_available': len(cache.get('stocks', {})) if cache.get('stocks') else 0
     })
 
 @app.route("/analytics-test")
