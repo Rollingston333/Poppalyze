@@ -1392,4 +1392,4 @@ if __name__ == '__main__':
     print(f"🌐 App will be available at: http://localhost:{port}")
     print(f"🔧 Debug mode: {debug_mode}")
     
-    app.run(debug=debug_mode, host='0.0.0.0', port=port) 
+    app.run(debug=debug_mode, host='0.0.0.0', port=port, use_reloader=False) 
