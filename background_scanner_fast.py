@@ -16,6 +16,12 @@ import threading
 import signal
 from cache_manager import cache_manager
 
+# Ensure cache directory exists with absolute paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+cache_dir = os.path.abspath(os.path.join(BASE_DIR, "data"))
+os.makedirs(cache_dir, exist_ok=True)
+print(f"📁 Scanner cache directory: {cache_dir}")
+
 # Try to import pytz, fallback to datetime if not available
 try:
     import pytz

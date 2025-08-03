@@ -19,9 +19,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configuration
-CACHE_FILE = "stock_cache.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CACHE_FILE = os.path.join(BASE_DIR, "data", "stock_cache.json")
 background_scanner_process = None
-SCANNER_PID_FILE = "background_scanner.pid"
+SCANNER_PID_FILE = "background_scanner_fast.pid"
 TRAFFIC_DB = "traffic_analytics.db"
 
 # Initialize background scanner for production (Gunicorn) - Non-blocking
