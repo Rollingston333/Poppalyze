@@ -892,6 +892,11 @@ def screener():
         cache_data = cache_manager.load_cache()
         
         if not cache_data or 'stocks' not in cache_data:
+            # Try to start the background scanner if it's not running
+            if not is_scanner_running():
+                print("🔄 No cache data found - starting background scanner...")
+                start_background_scanner()
+            
             # Create default cache_info for error case
             default_cache_info = {
                 'successful_count': 0,
@@ -901,7 +906,7 @@ def screener():
             }
             return render_template('screener.html', 
                                    stocks=[], 
-                                   error="📊 No stock data available. Start the background scanner with: python3 background_scanner.py",
+                                   error="📊 No stock data available. Background scanner is starting... Please refresh in a few minutes.",
                                    market_info=get_default_market_info(),
                                    cache_info=default_cache_info,
                                    cache_status=get_cache_status(),
@@ -1323,82 +1328,20 @@ def api_traffic_realtime():
         return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Gap Screener Dashboard (Cache Mode)")
+    print("🚀 Starting Poppalyze Stock Screener")
     print(f"📁 Cache file: {CACHE_FILE}")
-    print(f"🌐 Open your browser to: http://localhost:5001")
-    print(f"⚡ Instant responses - no API rate limits!")
-    print(f"🎯 Dynamically tracks biggest gappers")
-    print(f"📈 Cache status: /api/cache_status")
     
-    # Check if auto-scanner is disabled
-    disable_auto_scanner = os.environ.get('DISABLE_AUTO_SCANNER', '0') == '1'
+    # ALWAYS start the background scanner on initialization
+    print("🔄 Starting background scanner...")
+    scanner_started = start_background_scanner()
     
-    if disable_auto_scanner:
-        print("🔧 Auto-scanner disabled - using existing cache only")
-        print("💡 To start background scanner manually, run: python3 background_scanner.py")
+    if scanner_started:
+        print("✅ Background scanner is running")
     else:
-        # Check if cache exists first
-        cache_exists = os.path.exists(CACHE_FILE)
-        
-        if cache_exists:
-            try:
-                cache_status = get_cache_status()
-                cache = cache_manager.load_cache()
-                scan_type = cache.get('scan_type', 'unknown')
-                
-                # Ensure cache_status has required keys with defaults
-                if not isinstance(cache_status, dict):
-                    cache_status = {'status': 'Error', 'age_minutes': 0}
-                
-                status = cache_status.get('status', 'Unknown')
-                age_minutes = cache_status.get('age_minutes', 0)
-                
-                if age_minutes == float('inf'):
-                    status_message = "No data available"
-                else:
-                    status_message = f"Data is {status.lower()} ({age_minutes:.1f} minutes old)"
-                    
-                print(f"💾 Cache status: {status_message}")
-                print(f"🎯 Scan type: {scan_type}")
-                
-                # If we have good cache data, don't start background scanner immediately
-                if status == 'Fresh' and age_minutes < 5:
-                    print(f"✅ Using existing fresh cache data")
-                    print(f"🔍 Background scanner will start in background (preserving cache)")
-                    # Start scanner in background without overwriting cache
-                    scanner_started = start_background_scanner()
-                    if scanner_started:
-                        print("✅ Background scanner is running (preserving existing cache)")
-                    else:
-                        print("⚠️  Background scanner failed to start")
-                else:
-                    print(f"🔄 Cache is stale or missing, starting background scanner...")
-                    scanner_started = start_background_scanner()
-                    if scanner_started:
-                        print("✅ Background scanner is running")
-                    else:
-                        print("⚠️  Background scanner failed to start")
-                
-            except Exception as e:
-                print(f"⚠️  Error reading cache status: {e}")
-                print(f"🔄 Starting background scanner to create fresh cache...")
-                scanner_started = start_background_scanner()
-                if scanner_started:
-                    print("✅ Background scanner is running")
-                else:
-                    print("⚠️  Background scanner failed to start")
-        else:
-            print(f"\n⚠️  WARNING: Cache file '{CACHE_FILE}' not found!")
-            print(f"🔄 Starting background scanner to create cache data...")
-            scanner_started = start_background_scanner()
-            if scanner_started:
-                print("✅ Background scanner is running")
-            else:
-                print("⚠️  Background scanner failed to start - you may need to start it manually")
+        print("⚠️  Background scanner failed to start - will retry on first request")
     
-    print("\n🎉 Gap Screener Dashboard is ready!")
+    print("🎉 Poppalyze is ready!")
     print("📊 Background scanner will continuously update stock data")
-    print("🛑 Press Ctrl+C to stop both app and scanner")
     
     # Get port from environment (Render sets PORT)
     port = int(os.environ.get('PORT', 5001))
