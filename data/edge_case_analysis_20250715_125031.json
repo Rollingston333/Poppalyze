@@ -1,0 +1,104 @@
+{
+  "summary": {
+    "duration": 37.628389,
+    "tests_completed": 7,
+    "security_issues": [
+      "Information disclosure in SQL Injection Test",
+      "Information disclosure in Buffer Overflow Test"
+    ],
+    "error_handling_score": 71.42857142857143
+  },
+  "detailed_results": {
+    "SQL Injection Test": {
+      "scenario": "SQL Injection Test",
+      "status_code": 500,
+      "response_size": 16140,
+      "response_time": 0.013837,
+      "contains_error_page": true,
+      "contains_traceback": true,
+      "security_headers": {
+        "x_frame_options": null,
+        "x_content_type_options": null,
+        "x_xss_protection": null
+      }
+    },
+    "XSS Test": {
+      "scenario": "XSS Test",
+      "status_code": 200,
+      "response_size": 85544,
+      "response_time": 0.004076,
+      "contains_error_page": true,
+      "contains_traceback": false,
+      "security_headers": {
+        "x_frame_options": null,
+        "x_content_type_options": null,
+        "x_xss_protection": null
+      }
+    },
+    "Buffer Overflow Test": {
+      "scenario": "Buffer Overflow Test",
+      "status_code": 500,
+      "response_size": 66070,
+      "response_time": 0.015719,
+      "contains_error_page": true,
+      "contains_traceback": true,
+      "security_headers": {
+        "x_frame_options": null,
+        "x_content_type_options": null,
+        "x_xss_protection": null
+      }
+    },
+    "Negative Values Test": {
+      "scenario": "Negative Values Test",
+      "status_code": 200,
+      "response_size": 85584,
+      "response_time": 0.009999,
+      "contains_error_page": true,
+      "contains_traceback": false,
+      "security_headers": {
+        "x_frame_options": null,
+        "x_content_type_options": null,
+        "x_xss_protection": null
+      }
+    },
+    "Zero Division Test": {
+      "scenario": "Zero Division Test",
+      "status_code": 200,
+      "response_size": 85577,
+      "response_time": 0.005628,
+      "contains_error_page": true,
+      "contains_traceback": false,
+      "security_headers": {
+        "x_frame_options": null,
+        "x_content_type_options": null,
+        "x_xss_protection": null
+      }
+    },
+    "Unicode Test": {
+      "scenario": "Unicode Test",
+      "status_code": 200,
+      "response_size": 85616,
+      "response_time": 0.007,
+      "contains_error_page": true,
+      "contains_traceback": false,
+      "security_headers": {
+        "x_frame_options": null,
+        "x_content_type_options": null,
+        "x_xss_protection": null
+      }
+    },
+    "Path Traversal Test": {
+      "scenario": "Path Traversal Test",
+      "status_code": 404,
+      "response_size": 207,
+      "response_time": 0.003499,
+      "contains_error_page": false,
+      "contains_traceback": false,
+      "security_headers": {
+        "x_frame_options": null,
+        "x_content_type_options": null,
+        "x_xss_protection": null
+      }
+    }
+  }
+}

@@ -1,0 +1,107 @@
+[
+  {
+    "symbol": "NVDA",
+    "price": 164.92,
+    "sector": "Technology",
+    "industry": "Semiconductors",
+    "category": "Semiconductors"
+  },
+  {
+    "symbol": "MSFT",
+    "price": 503.32,
+    "sector": "Technology",
+    "industry": "Software - Infrastructure",
+    "category": "Software"
+  },
+  {
+    "symbol": "TSLA",
+    "price": 313.51,
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "category": "Consumer"
+  },
+  {
+    "symbol": "PFE",
+    "price": 25.65,
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General",
+    "category": "Healthcare"
+  },
+  {
+    "symbol": "JPM",
+    "price": 286.86,
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified",
+    "category": "Finance"
+  },
+  {
+    "symbol": "LMT",
+    "price": 467.51,
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense",
+    "category": "Defense"
+  },
+  {
+    "symbol": "XOM",
+    "price": 115.43,
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated",
+    "category": "Energy"
+  },
+  {
+    "symbol": "AMZN",
+    "price": 225.02,
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail",
+    "category": "Consumer"
+  },
+  {
+    "symbol": "COIN",
+    "price": 387.06,
+    "sector": "Financial Services",
+    "industry": "Financial Data & Stock Exchanges",
+    "category": "Finance"
+  },
+  {
+    "symbol": "MRNA",
+    "price": 33.64,
+    "sector": "Healthcare",
+    "industry": "Biotechnology",
+    "category": "Biotech"
+  },
+  {
+    "symbol": "DIS",
+    "price": 119.87,
+    "sector": "Communication Services",
+    "industry": "Entertainment",
+    "category": "Media"
+  },
+  {
+    "symbol": "BA",
+    "price": 226.84,
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense",
+    "category": "Defense"
+  },
+  {
+    "symbol": "ABVE",
+    "price": 3.63,
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods",
+    "category": "Consumer"
+  },
+  {
+    "symbol": "MP",
+    "price": 45.11,
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining",
+    "category": "Materials"
+  },
+  {
+    "symbol": "SOFI",
+    "price": 21.2,
+    "sector": "Financial Services",
+    "industry": "Credit Services",
+    "category": "Finance"
+  }
+]

@@ -1,0 +1,122 @@
+{
+  "summary": {
+    "duration": 384.230499,
+    "total_tests": 7,
+    "overall_performance": 97.70135688660385,
+    "assessment": "\ud83c\udf1f PRODUCTION READY - Excellent performance under all loads"
+  },
+  "detailed_results": {
+    "Gradual Ramp-Up Test": {
+      "type": "ramp_test",
+      "overall_success_rate": 100.0,
+      "total_requests": 5920,
+      "time_buckets": [
+        {
+          "time_period": "0-10s",
+          "total_requests": 386,
+          "success_rate": 100.0,
+          "avg_response_time": 0.009522657320289413,
+          "concurrent_users": 111
+        },
+        {
+          "time_period": "10-20s",
+          "total_requests": 996,
+          "success_rate": 100.0,
+          "avg_response_time": 0.008862218464234746,
+          "concurrent_users": 200
+        },
+        {
+          "time_period": "20-30s",
+          "total_requests": 1119,
+          "success_rate": 100.0,
+          "avg_response_time": 0.009529943440618848,
+          "concurrent_users": 200
+        },
+        {
+          "time_period": "30-40s",
+          "total_requests": 1147,
+          "success_rate": 100.0,
+          "avg_response_time": 0.011443914489945643,
+          "concurrent_users": 200
+        },
+        {
+          "time_period": "40-50s",
+          "total_requests": 1146,
+          "success_rate": 100.0,
+          "avg_response_time": 0.008349078487975435,
+          "concurrent_users": 200
+        },
+        {
+          "time_period": "50-60s",
+          "total_requests": 1119,
+          "success_rate": 100.0,
+          "avg_response_time": 0.009995671017453328,
+          "concurrent_users": 200
+        },
+        {
+          "time_period": "60-70s",
+          "total_requests": 7,
+          "success_rate": 100.0,
+          "avg_response_time": 0.09941639219011579,
+          "concurrent_users": 7
+        }
+      ],
+      "duration": 60
+    },
+    "Traffic Burst Test": {
+      "type": "sustained_test",
+      "success_rate": 95.90030849163826,
+      "avg_response_time": 0.2616403826627422,
+      "p95_response_time": 0.49500489234924316,
+      "throughput": 393.76666666666665,
+      "total_requests": 12318,
+      "duration": 30,
+      "rating": "\u2705 GOOD"
+    },
+    "Sustained Heavy Load": {
+      "type": "sustained_test",
+      "success_rate": 100.0,
+      "avg_response_time": 0.011902934882834733,
+      "p95_response_time": 0.038014888763427734,
+      "throughput": 177.06666666666666,
+      "total_requests": 21248,
+      "duration": 120,
+      "rating": "\ud83c\udf1f EXCELLENT"
+    },
+    "Peak Traffic Simulation": {
+      "type": "sustained_test",
+      "success_rate": 88.00918971458867,
+      "avg_response_time": 0.6776837931100623,
+      "p95_response_time": 2.1281490325927734,
+      "throughput": 498.0,
+      "total_requests": 11317,
+      "duration": 20,
+      "rating": "\u274c POOR"
+    },
+    "Connection Limits Test": {
+      "type": "connection_test",
+      "max_attempted": 1000,
+      "successful": 1000,
+      "success_rate": 100.0
+    },
+    "Memory Pressure Test": {
+      "type": "memory_test",
+      "success_rate": 100.0,
+      "avg_response_time": 0.0021508514881134035,
+      "avg_content_size": 85593.5,
+      "total_requests": 40
+    },
+    "CPU Intensive Test": {
+      "type": "cpu_test",
+      "success_rate": 100.0,
+      "avg_response_time": 0.012947305043538412,
+      "total_requests": 30
+    }
+  },
+  "recommendations": {
+    "failed_tests": [
+      "Peak Traffic Simulation"
+    ],
+    "slow_tests": []
+  }
+}

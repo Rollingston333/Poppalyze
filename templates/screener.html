@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Poppalyze - Real-time Stock Gap Analysis & Market Movers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: #f5f5f5; 
+            color: #333;
+            font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 3.5em;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.05;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-feature-settings: 'liga' 1, 'calt' 1;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.95;
+            font-size: 1.4em;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            line-height: 1.4;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 10px;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-fresh { background: #28a745; }
+        .status-stale { background: #ffc107; }
+        .status-old { background: #dc3545; }
+        .filters-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+        .filters-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+        }
+        .filter-group-section {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .filter-section-header {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #495057;
+        }
+        .filter-section-header h4 {
+            margin: 0;
+            font-size: 1em;
+        }
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        .filter-section-content {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: none; /* Hidden by default */
+        }
+        .filter-section-content.active {
+            display: block; /* Show when active */
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 0; /* Remove bottom margin here as it's handled by filter-group-section */
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .filter-group input, .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-outline {
+            background: #e0e0e0;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+        .btn-outline:hover {
+            background: #d0d0d0;
+        }
+        .stocks-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .table-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-header h3 {
+            margin: 0;
+            color: #495057;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .positive { color: #28a745; font-weight: 600; }
+        .negative { color: #dc3545; font-weight: 600; }
+        .neutral { color: #6c757d; }
+        
+        /* Gap Status Badge Styles */
+        .gap-status {
+            text-align: center;
+        }
+        .gap-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        .gap-badge.explosive {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            box-shadow: 0 2px 4px rgba(238, 90, 36, 0.3);
+        }
+        .gap-badge.huge {
+            background: linear-gradient(135deg, #ff9ff3, #f368e0);
+            color: white;
+            box-shadow: 0 2px 4px rgba(243, 104, 224, 0.3);
+        }
+        .gap-badge.big {
+            background: linear-gradient(135deg, #54a0ff, #2e86de);
+            color: white;
+            box-shadow: 0 2px 4px rgba(46, 134, 222, 0.3);
+        }
+        .gap-badge.down {
+            background: linear-gradient(135deg, #ffa726, #ff9800);
+            color: white;
+            box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+        }
+        .gap-badge.loser {
+            background: linear-gradient(135deg, #ef5350, #d32f2f);
+            color: white;
+            box-shadow: 0 2px 4px rgba(211, 47, 47, 0.3);
+        }
+        .gap-badge.regular {
+            background: linear-gradient(135deg, #90a4ae, #607d8b);
+            color: white;
+            box-shadow: 0 2px 4px rgba(96, 125, 139, 0.3);
+        }
+        
+        /* Sortable Table Styles */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.2s ease;
+        }
+        
+        .sortable:hover {
+            background: #e9ecef !important;
+        }
+        
+        .sortable.sort-asc .sort-icon::after {
+            content: " ↑";
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .sortable.sort-desc .sort-icon::after {
+            content: " ↓";
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .sort-icon {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-left: 4px;
+        }
+        
+        .sortable:hover .sort-icon {
+            opacity: 1;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+        .highlight-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .highlight-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .highlight-card.top-gappers {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        .highlight-card.quick-movers {
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+            color: white;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+        .card-header h4 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        .card-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .slider-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9);
+            white-space: nowrap;
+        }
+        .slider-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .slider-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255,255,255,0.3);
+            transition: 0.3s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .no-results {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+        }
+        .no-results-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            opacity: 0.6;
+        }
+        .no-results-text {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: rgba(255,255,255,0.8);
+        }
+        .no-results-subtext {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+            border: 1px solid #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .stock-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .stock-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            color: #333;
+        }
+        .stock-symbol {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        .stock-price {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        .stock-change {
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .stock-change.positive {
+            color: #28a745;
+        }
+        .stock-change.negative {
+            color: #dc3545;
+        }
+        .arrow {
+            font-size: 1.2em;
+        }
+        .stock-details {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+        .stock-details span {
+            display: block;
+        }
+        .card-footer {
+            font-size: 0.8em;
+            opacity: 0.8;
+            text-align: center;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+        .symbol {
+            font-weight: 600;
+            color: #495057;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .status-bar { flex-direction: column; align-items: flex-start; }
+            .filters-grid { grid-template-columns: 1fr; }
+            .highlight-section { grid-template-columns: 1fr; }
+            .table-container { font-size: 12px; }
+            th, td { padding: 8px 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Poppalyze</h1>
+        <p>Catch the pop. Own the trade.</p>
+    </div>
+
+    <div class="container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator status-{% if cache_status and cache_status.is_fresh %}fresh{% elif cache_status and cache_status.age_minutes < 30 %}stale{% else %}old{% endif %}"></div>
+                <span>Data: {% if cache_status %}{{ cache_status.message }}{% else %}Unknown{% endif %}</span>
+            </div>
+            <div class="status-item">
+                <span>📊 {{ total_stocks }} Total Stocks</span>
+            </div>
+            <div class="status-item">
+                <span>🔍 {{ filtered_count }} Filtered Results</span>
+            </div>
+            <div class="status-item">
+                <span>🕒 Last Update: {% if last_update %}{{ last_update }}{% else %}Never{% endif %}</span>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        {% if error %}
+        <div class="error-message">
+            <strong>⚠️ Error:</strong> {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- Highlight Sections -->
+        <div class="highlight-section">
+            <div class="highlight-card quick-movers">
+                <div class="card-header">
+                    <h4>⚡ Quick Movers</h4>
+                    <div class="card-controls">
+                        <div class="slider-container">
+                            <label class="slider-label">Apply Filters</label>
+                            <label class="slider-switch">
+                                <input type="checkbox" id="quick_movers_filter" {% if not quick_movers_independent %}checked{% endif %} onchange="toggleQuickMoversFilter()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <button class="btn btn-primary btn-sm">Live Updates</button>
+                    </div>
+                </div>
+                <div class="stock-cards">
+                    {% if quick_movers %}
+                        {% for stock in quick_movers %}
+                        <div class="stock-card">
+                            <div class="stock-symbol">{{ stock.symbol }}</div>
+                            <div class="stock-price">${% if stock.price %}{{ "%.2f"|format(stock.price) }}{% else %}N/A{% endif %}</div>
+                            <div class="stock-change">
+                                <span class="arrow">⚡</span>
+                                {% if stock.relative_volume %}{{ "%.1f"|format(stock.relative_volume) }}{% else %}N/A{% endif %}x volume
+                            </div>
+                            <div class="stock-details">
+                                <span class="volume">Vol: {% if stock.relative_volume %}{{ "%.2f"|format(stock.relative_volume) }}{% else %}N/A{% endif %}x</span>
+                                <span class="market-cap">Cap: {% if stock.market_cap_formatted %}{{ stock.market_cap_formatted }}{% else %}N/A{% endif %}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-results">
+                            <div class="no-results-icon">📊</div>
+                            <div class="no-results-text">No Quick Movers found</div>
+                            <div class="no-results-subtext">Try adjusting your filters or check back later</div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    {% if quick_movers %}
+                        Showing top {{ quick_movers|length }} Quick Movers • Updated: {% if last_update %}{{ last_update }}{% else %}Never{% endif %} • Auto-refreshes every 3 minutes
+                    {% else %}
+                        No results • Updated: {% if last_update %}{{ last_update }}{% else %}Never{% endif %} • Auto-refreshes every 3 minutes
+                    {% endif %}
+                </div>
+            </div>
+            </div>
+            
+            <div class="highlight-card top-gappers">
+                <div class="card-header">
+                    <h4>🏆 Top Positive Gappers</h4>
+                    <div class="card-controls">
+                        <div class="slider-container">
+                            <label class="slider-label">Apply Filters</label>
+                            <label class="slider-switch">
+                                <input type="checkbox" id="top_gappers_filter" {% if not top_gappers_independent %}checked{% endif %} onchange="toggleTopGappersFilter()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <button class="btn btn-success btn-sm">Live Updates</button>
+                    </div>
+                </div>
+                <div class="stock-cards">
+                    {% if top_positive_gappers %}
+                        {% for stock in top_positive_gappers %}
+                        <div class="stock-card">
+                            <div class="stock-symbol">{{ stock.symbol }}</div>
+                            <div class="stock-price">${% if stock.price %}{{ "%.2f"|format(stock.price) }}{% else %}N/A{% endif %}</div>
+                            <div class="stock-change positive">
+                                <span class="arrow">↗</span>
+                                +{{ "%.2f"|format(stock.gap_pct) }}%
+                            </div>
+                            <div class="stock-details">
+                                <span class="volume">Vol: {% if stock.relative_volume %}{{ "%.2f"|format(stock.relative_volume) }}{% else %}N/A{% endif %}x</span>
+                                <span class="market-cap">Cap: {% if stock.market_cap_formatted %}{{ stock.market_cap_formatted }}{% else %}N/A{% endif %}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-results">
+                            <div class="no-results-icon">🏆</div>
+                            <div class="no-results-text">No Top Gappers found</div>
+                            <div class="no-results-subtext">Try adjusting your filters or check back later</div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    {% if top_positive_gappers %}
+                        Showing top {{ top_positive_gappers|length }} positive gappers • Updated: {% if last_update %}{{ last_update }}{% else %}Never{% endif %} • Auto-refreshes every 3 minutes
+                    {% else %}
+                        No results • Updated: {% if last_update %}{{ last_update }}{% else %}Never{% endif %} • Auto-refreshes every 3 minutes
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filters-header">
+                <h3>🔧 Filters</h3>
+                <div class="filter-controls">
+                    <button type="button" class="btn btn-sm btn-outline" onclick="toggleAllFilters()">Toggle All</button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="resetFilters()">Reset</button>
+                </div>
+            </div>
+            <form method="GET" action="/" id="filters-form">
+                <!-- Basic Filters (Always Visible) -->
+                <div class="filter-group-section">
+                    <div class="filter-section-header" onclick="toggleSection('basic-filters')">
+                        <h4>📊 Basic Filters</h4>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="filter-section-content" id="basic-filters">
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label for="min_price">Min Price ($)</label>
+                                <input type="number" id="min_price" name="min_price" step="0.01" min="0.01" value="{% if filters and filters.min_price %}{{ filters.min_price }}{% else %}0.01{% endif %}" onchange="this.form.submit()">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max_price">Max Price ($)</label>
+                                <input type="number" id="max_price" name="max_price" step="0.01" min="0.01" value="{% if filters and filters.max_price %}{{ filters.max_price }}{% else %}1000.0{% endif %}" onchange="this.form.submit()">
+                            </div>
+                            <div class="filter-group">
+                                <label for="min_gap_pct">Min Gap %</label>
+                                <input type="number" id="min_gap_pct" name="min_gap_pct" step="0.1" value="{% if filters and filters.min_gap_pct %}{{ filters.min_gap_pct }}{% else %}-100.0{% endif %}" onchange="this.form.submit()">
+                            </div>
+                            <div class="filter-group">
+                                <label for="min_rel_vol">Min Relative Volume</label>
+                                <input type="number" id="min_rel_vol" name="min_rel_vol" step="0.1" min="0" value="{% if filters and filters.min_rel_vol %}{{ filters.min_rel_vol }}{% else %}0.0{% endif %}" onchange="this.form.submit()">
+                            </div>
+                            <div class="filter-group">
+                                <label for="sector_filter">Sector</label>
+                                <select id="sector_filter" name="sector_filter" onchange="this.form.submit()">
+                                    <option value="All" {% if filters and filters.sector_filter == 'All' %}selected{% endif %}>All Sectors</option>
+                                    {% if sectors %}
+                                        {% for sector in sectors %}
+                                        <option value="{{ sector }}" {% if filters and filters.sector_filter == sector %}selected{% endif %}>{{ sector }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market & Volume Filters -->
+                <div class="filter-group-section">
+                    <div class="filter-section-header" onclick="toggleSection('market-filters')">
+                        <h4>📈 Market & Volume</h4>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="filter-section-content" id="market-filters">
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label for="max_float">Max Float (M)</label>
+                                <input type="number" id="max_float" name="max_float" step="0.1" min="0" placeholder="e.g., 50" value="{% if filters and filters.max_float %}{{ filters.max_float }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="min_market_cap">Min Market Cap (M)</label>
+                                <input type="number" id="min_market_cap" name="min_market_cap" step="1" min="0" placeholder="e.g., 100" value="{% if filters and filters.min_market_cap %}{{ filters.min_market_cap }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max_market_cap">Max Market Cap (M)</label>
+                                <input type="number" id="max_market_cap" name="max_market_cap" step="1" min="0" placeholder="e.g., 10000" value="{% if filters and filters.max_market_cap %}{{ filters.max_market_cap }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="min_premarket_volume">Min Premarket Volume</label>
+                                <input type="number" id="min_premarket_volume" name="min_premarket_volume" step="1" min="0" placeholder="e.g., 100000" value="{% if filters and filters.min_premarket_volume %}{{ filters.min_premarket_volume }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Valuation Filters -->
+                <div class="filter-group-section">
+                    <div class="filter-section-header" onclick="toggleSection('valuation-filters')">
+                        <h4>💰 Valuation</h4>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="filter-section-content" id="valuation-filters">
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label for="min_pe_ratio">Min P/E Ratio</label>
+                                <input type="number" id="min_pe_ratio" name="min_pe_ratio" step="0.1" placeholder="e.g., 5" value="{% if filters and filters.min_pe_ratio %}{{ filters.min_pe_ratio }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max_pe_ratio">Max P/E Ratio</label>
+                                <input type="number" id="max_pe_ratio" name="max_pe_ratio" step="0.1" placeholder="e.g., 50" value="{% if filters and filters.max_pe_ratio %}{{ filters.max_pe_ratio }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pre-Market Filters -->
+                <div class="filter-group-section">
+                    <div class="filter-section-header" onclick="toggleSection('premarket-filters')">
+                        <h4>🌅 Pre-Market</h4>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="filter-section-content" id="premarket-filters">
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label for="min_pre_market">Min Pre-market Price ($)</label>
+                                <input type="number" id="min_pre_market" name="min_pre_market" step="0.01" min="0" placeholder="e.g., 5.00" value="{% if filters and filters.min_pre_market %}{{ filters.min_pre_market }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max_pre_market">Max Pre-market Price ($)</label>
+                                <input type="number" id="max_pre_market" name="max_pre_market" step="0.01" min="0" placeholder="e.g., 50.00" value="{% if filters and filters.max_pre_market %}{{ filters.max_pre_market }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="min_pre_market_change">Min Pre-market Change (%)</label>
+                                <input type="number" id="min_pre_market_change" name="min_pre_market_change" step="0.1" placeholder="e.g., 5.0" value="{% if filters and filters.min_pre_market_change %}{{ filters.min_pre_market_change }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max_pre_market_change">Max Pre-market Change (%)</label>
+                                <input type="number" id="max_pre_market_change" name="max_pre_market_change" step="0.1" placeholder="e.g., 50.0" value="{% if filters and filters.max_pre_market_change %}{{ filters.max_pre_market_change }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- After-Market Filters -->
+                <div class="filter-group-section">
+                    <div class="filter-section-header" onclick="toggleSection('aftermarket-filters')">
+                        <h4>🌙 After-Market</h4>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="filter-section-content" id="aftermarket-filters">
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label for="min_post_market">Min After-market Price ($)</label>
+                                <input type="number" id="min_post_market" name="min_post_market" step="0.01" min="0" placeholder="e.g., 5.00" value="{% if filters and filters.min_post_market %}{{ filters.min_post_market }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max_post_market">Max After-market Price ($)</label>
+                                <input type="number" id="max_post_market" name="max_post_market" step="0.01" min="0" placeholder="e.g., 50.00" value="{% if filters and filters.max_post_market %}{{ filters.max_post_market }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="min_post_market_change">Min After-market Change (%)</label>
+                                <input type="number" id="min_post_market_change" name="min_post_market_change" step="0.1" placeholder="e.g., 5.0" value="{% if filters and filters.min_post_market_change %}{{ filters.min_post_market_change }}{% endif %}">
+                            </div>
+                            <div class="filter-group">
+                                <label for="max_post_market_change">Max After-market Change (%)</label>
+                                <input type="number" id="max_post_market_change" name="max_post_market_change" step="0.1" placeholder="e.g., 50.0" value="{% if filters and filters.max_post_market_change %}{{ filters.max_post_market_change }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-buttons">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="/" class="btn btn-secondary">Clear All</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Stocks Table -->
+        <div class="stocks-table">
+            <div class="table-header">
+                <h3>📋 Stock Results</h3>
+                <span>{{ filtered_count }} stocks found</span>
+            </div>
+            
+            {% if stocks %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="symbol">
+                                Symbol <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="price">
+                                Price <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="gap_pct">
+                                Gap % <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="gap_status">
+                                Gap Status <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="pre_market">
+                                Pre-Market <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="post_market">
+                                After-Market <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="volume">
+                                Volume <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="rel_vol">
+                                Rel Vol <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="market_cap">
+                                Market Cap <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" data-sort="sector">
+                                Sector <span class="sort-icon">↕</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in stocks %}
+                        <tr data-symbol="{{ stock.symbol }}" data-price="{{ stock.price }}" data-gap-pct="{{ stock.gap_pct }}" data-gap-status="{% if stock.gap_classification %}{{ stock.gap_classification }}{% else %}REGULAR{% endif %}" data-pre-market="{% if stock.pre_market_price %}{{ stock.pre_market_price }}{% else %}0{% endif %}" data-post-market="{% if stock.post_market_price %}{{ stock.post_market_price }}{% else %}0{% endif %}" data-volume="{% if stock.volume %}{{ stock.volume }}{% else %}0{% endif %}" data-rel-vol="{% if stock.relative_volume %}{{ stock.relative_volume }}{% else %}0{% endif %}" data-market-cap="{% if stock.market_cap_formatted %}{{ stock.market_cap_formatted }}{% else %}N/A{% endif %}" data-sector="{% if stock.category %}{{ stock.category }}{% else %}N/A{% endif %}">
+                            <td><strong>{{ stock.symbol }}</strong></td>
+                            <td>${% if stock.price %}{{ "%.2f"|format(stock.price) }}{% else %}N/A{% endif %}</td>
+                            <td class="{% if stock.gap_pct > 0 %}positive{% elif stock.gap_pct < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if stock.gap_pct %}{{ "%.2f"|format(stock.gap_pct) }}{% else %}0.00{% endif %}%
+                            </td>
+                            <td class="gap-status">
+                                {% if stock.gap_classification %}
+                                    {% if 'EXPLOSIVE' in stock.gap_classification %}
+                                        <span class="gap-badge explosive">{{ stock.gap_classification }}</span>
+                                    {% elif 'HUGE' in stock.gap_classification %}
+                                        <span class="gap-badge huge">{{ stock.gap_classification }}</span>
+                                    {% elif 'BIG' in stock.gap_classification %}
+                                        <span class="gap-badge big">{{ stock.gap_classification }}</span>
+                                    {% elif 'DOWN' in stock.gap_classification %}
+                                        <span class="gap-badge down">{{ stock.gap_classification }}</span>
+                                    {% elif 'LOSER' in stock.gap_classification %}
+                                        <span class="gap-badge loser">{{ stock.gap_classification }}</span>
+                                    {% else %}
+                                        <span class="gap-badge regular">{{ stock.gap_classification }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="gap-badge regular">📊 REGULAR</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if stock.pre_market_price %}
+                                    ${{ "%.2f"|format(stock.pre_market_price) }} 
+                                    <span class="{% if stock.pre_market_change_pct and stock.pre_market_change_pct > 0 %}positive{% elif stock.pre_market_change_pct and stock.pre_market_change_pct < 0 %}negative{% else %}neutral{% endif %}">
+                                        ({% if stock.pre_market_change_pct %}{{ "%.2f"|format(stock.pre_market_change_pct) }}{% else %}0.00{% endif %}%)
+                                    </span>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if stock.post_market_price %}
+                                    ${{ "%.2f"|format(stock.post_market_price) }} 
+                                    <span class="{% if stock.post_market_change_pct and stock.post_market_change_pct > 0 %}positive{% elif stock.post_market_change_pct and stock.post_market_change_pct < 0 %}negative{% else %}neutral{% endif %}">
+                                        ({% if stock.post_market_change_pct %}{{ "%.2f"|format(stock.post_market_change_pct) }}{% else %}0.00{% endif %}%)
+                                    </span>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>{% if stock.volume_formatted %}{{ stock.volume_formatted }}{% else %}N/A{% endif %}</td>
+                            <td>{% if stock.relative_volume %}{{ "%.1f"|format(stock.relative_volume) }}{% else %}N/A{% endif %}</td>
+                            <td>{% if stock.market_cap_formatted %}{{ stock.market_cap_formatted }}{% else %}N/A{% endif %}</td>
+                            <td>{% if stock.category %}{{ stock.category }}{% else %}N/A{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="loading">
+                {% if error %}
+                    <p>❌ {{ error }}</p>
+                {% else %}
+                    <div class="spinner"></div>
+                    <p>No stocks match your current filters</p>
+                    <p>Try adjusting your filter criteria or check if the background scanner is running</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+    
+    <script>
+        // Auto-refresh every 30 seconds if data is fresh
+        {% if cache_status and cache_status.is_fresh %}
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+        {% endif %}
+        
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Poppalyze loaded successfully');
+            
+            // Add hover effects to table rows
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#e3f2fd';
+                });
+                row.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '';
+                });
+            });
+
+            // Initialize filter sections - show basic filters by default
+            document.getElementById('basic-filters').classList.add('active');
+            updateToggleIcon('basic-filters');
+            
+            // Initialize table sorting
+            initializeTableSorting();
+        });
+
+        // Filter section toggle functionality
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            const isActive = content.classList.contains('active');
+            
+            if (isActive) {
+                content.classList.remove('active');
+            } else {
+                content.classList.add('active');
+            }
+            
+            updateToggleIcon(sectionId);
+        }
+
+        function updateToggleIcon(sectionId) {
+            const header = document.querySelector(`#${sectionId}`).previousElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            const isActive = document.getElementById(sectionId).classList.contains('active');
+            
+            if (isActive) {
+                icon.textContent = '▼';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                icon.textContent = '▶';
+                icon.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        function toggleAllFilters() {
+            const sections = document.querySelectorAll('.filter-section-content');
+            const allActive = Array.from(sections).every(section => section.classList.contains('active'));
+            
+            sections.forEach(section => {
+                if (allActive) {
+                    section.classList.remove('active');
+                } else {
+                    section.classList.add('active');
+                }
+                updateToggleIcon(section.id);
+            });
+        }
+
+        function resetFilters() {
+            // Reset all filter inputs to their default values
+            const form = document.getElementById('filters-form');
+            const inputs = form.querySelectorAll('input[type="number"]');
+            const selects = form.querySelectorAll('select');
+            
+            // Reset number inputs with correct default values
+            inputs.forEach(input => {
+                if (input.id === 'min_price') input.value = '0.01';
+                else if (input.id === 'max_price') input.value = '1000.0';
+                else if (input.id === 'min_gap_pct') input.value = '-100.0';
+                else if (input.id === 'min_rel_vol') input.value = '0.0';
+                else input.value = ''; // Clear advanced filters
+            });
+            
+            // Reset selects
+            selects.forEach(select => {
+                if (select.id === 'sector_filter') {
+                    select.value = 'All';
+                }
+            });
+        }
+
+        function toggleQuickMoversFilter() {
+            const checkbox = document.getElementById('quick_movers_filter');
+            const url = new URL(window.location);
+            
+            console.log('🔍 toggleQuickMoversFilter() called');
+            console.log('🔍 Checkbox checked:', checkbox.checked);
+            console.log('🔍 Current URL:', window.location.href);
+            
+            if (checkbox.checked) {
+                // Apply filters (not independent)
+                url.searchParams.set('quick_movers_independent', 'false');
+                console.log('🔍 Setting quick_movers_independent=false');
+            } else {
+                // Don't apply filters (independent)
+                url.searchParams.delete('quick_movers_independent');
+                console.log('🔍 Deleting quick_movers_independent parameter');
+            }
+            
+            console.log('🔍 New URL:', url.toString());
+            window.location.href = url.toString();
+        }
+
+        function toggleTopGappersFilter() {
+            const checkbox = document.getElementById('top_gappers_filter');
+            const url = new URL(window.location);
+            
+            console.log('🔍 toggleTopGappersFilter() called');
+            console.log('🔍 Checkbox checked:', checkbox.checked);
+            console.log('🔍 Current URL:', window.location.href);
+            
+            if (checkbox.checked) {
+                // Apply filters (not independent)
+                url.searchParams.set('top_gappers_independent', 'false');
+                console.log('🔍 Setting top_gappers_independent=false');
+            } else {
+                // Don't apply filters (independent)
+                url.searchParams.delete('top_gappers_independent');
+                console.log('🔍 Deleting top_gappers_independent parameter');
+            }
+            
+            console.log('🔍 New URL:', url.toString());
+            window.location.href = url.toString();
+        }
+
+        
+        // Table Sorting Functionality
+        function initializeTableSorting() {
+            const sortableHeaders = document.querySelectorAll('.sortable');
+            let currentSort = { column: null, direction: 'asc' };
+            
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const column = this.getAttribute('data-sort');
+                    const tbody = document.querySelector('tbody');
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    
+                    // Determine sort direction
+                    let direction = 'asc';
+                    if (currentSort.column === column && currentSort.direction === 'asc') {
+                        direction = 'desc';
+                    }
+                    
+                    // Update sort indicators
+                    sortableHeaders.forEach(h => {
+                        h.classList.remove('sort-asc', 'sort-desc');
+                    });
+                    this.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+                    
+                    // Sort the rows
+                    rows.sort((a, b) => {
+                        const aValue = getSortValue(a, column);
+                        const bValue = getSortValue(b, column);
+                        
+                        if (direction === 'asc') {
+                            return compareValues(aValue, bValue);
+                        } else {
+                            return compareValues(bValue, aValue);
+                        }
+                    });
+                    
+                    // Reorder the table
+                    rows.forEach(row => tbody.appendChild(row));
+                    
+                    // Update current sort state
+                    currentSort = { column, direction };
+                });
+            });
+        }
+        
+        function getSortValue(row, column) {
+            const value = row.getAttribute(`data-${column.replace('_', '-')}`);
+            
+            // Handle different data types
+            switch (column) {
+                case 'price':
+                case 'gap_pct':
+                case 'pre_market':
+                case 'post_market':
+                case 'volume':
+                case 'rel_vol':
+                    return parseFloat(value) || 0;
+                case 'gap_status':
+                    // Sort gap status by priority (EXPLOSIVE > HUGE > BIG > DOWN > LOSER > REGULAR)
+                    const status = value.toUpperCase();
+                    if (status.includes('EXPLOSIVE')) return 6;
+                    if (status.includes('HUGE')) return 5;
+                    if (status.includes('BIG')) return 4;
+                    if (status.includes('DOWN')) return 3;
+                    if (status.includes('LOSER')) return 2;
+                    return 1; // REGULAR
+                case 'market_cap':
+                    // Convert market cap to numeric value (e.g., "1.2B" -> 1200000000)
+                    return convertMarketCapToNumber(value);
+                default:
+                    return value || '';
+            }
+        }
+        
+        function convertMarketCapToNumber(marketCap) {
+            if (!marketCap || marketCap === 'N/A') return 0;
+            
+            const value = marketCap.toString().toUpperCase();
+            const number = parseFloat(value.replace(/[^0-9.]/g, ''));
+            
+            if (value.includes('T')) return number * 1000000000000;
+            if (value.includes('B')) return number * 1000000000;
+            if (value.includes('M')) return number * 1000000;
+            if (value.includes('K')) return number * 1000;
+            
+            return number;
+        }
+        
+        function compareValues(a, b) {
+            if (typeof a === 'number' && typeof b === 'number') {
+                return a - b;
+            }
+            if (typeof a === 'string' && typeof b === 'string') {
+                return a.localeCompare(b);
+            }
+            return 0;
+        }
+    </script>
+</body>
+</html> 
